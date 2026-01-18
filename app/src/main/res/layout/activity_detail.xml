@@ -70,7 +70,55 @@
                 android:text="Base Stats"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Description"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"/>
 
+            <TextView
+                android:id="@+id/tvDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Loading description..."
+                android:layout_marginBottom="16dp"
+                android:textColor="#555"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Abilities"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/tvAbilities"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Loading..."
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Evolution Chain"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:id="@+id/layoutEvolution"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <View android:layout_width="match_parent" android:layout_height="50dp"/>
             <TextView android:id="@+id/tvStatHp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="HP: Loading..."/>
             <TextView android:id="@+id/tvStatAtk" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Attack: Loading..."/>
             <TextView android:id="@+id/tvStatDef" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Defense: Loading..."/>
