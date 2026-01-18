@@ -10,7 +10,7 @@ public class EvolutionChainResponse {
     public ChainLink getChain() {
         return chain;
     }
-    
+
     public static class ChainLink {
         @SerializedName("species")
         private NamedResource species;
