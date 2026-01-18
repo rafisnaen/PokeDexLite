@@ -11,7 +11,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "Pokedex.db";
     private static final int DATABASE_VERSION = 1;
 
-    // Table Names
     private static final String TABLE_FAVORITES = "favorites";
     private static final String TABLE_TEAM = "team";
     private static final String TABLE_CACHE = "api_cache";
@@ -119,9 +118,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.rawQuery("SELECT * FROM " + TABLE_FAVORITES + " ORDER BY saved_at DESC", null);
     }
 
-    // --- TEAM OPERATIONS (Max 6 Slots) ---
-
-    // Mengembalikan slot kosong pertama (1-6), atau -1 jika penuh
     public int getAvailableTeamSlot() {
         SQLiteDatabase db = this.getReadableDatabase();
         for (int i = 1; i <= 6; i++) {
@@ -132,7 +128,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
             cursor.close();
         }
-        return -1; // Tim Penuh
+        return -1;
     }
 
     public void addToTeam(int slot, int id, String name, String imageUrl, String types) {
@@ -148,7 +144,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.replace(TABLE_TEAM, null, values);
     }
 
-    // Cek apakah pokemon ini sudah ada di tim (agar tidak duplikat)
     public boolean isInTeam(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT 1 FROM " + TABLE_TEAM + " WHERE pokemon_id=?", new String[]{String.valueOf(id)});

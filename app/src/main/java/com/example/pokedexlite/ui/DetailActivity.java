@@ -41,26 +41,20 @@ public class DetailActivity extends AppCompatActivity {
 
         dbHelper = new DatabaseHelper(this);
         apiService = RetrofitClient.getService();
-
-        // Ambil ID
         pokemonId = getIntent().getIntExtra("EXTRA_ID", -1);
         if (pokemonId == -1) {
             finish();
             return;
         }
-
-        // Gambar Awal (Placeholder)
         imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/" + pokemonId + ".png";
         Picasso.get().load(imageUrl).into(binding.imgDetail);
 
-        // --- MULAI REQUEST BERANTAI ---
-        loadDetail();  // Step 1: Detail Core
-        loadSpecies(); // Step 2: Description -> lanjut ke Evolution
+        loadDetail();
+        loadSpecies();
 
         setupButtons();
     }
 
-    // --- STEP 1: LOAD DETAIL (Stats, Types, Abilities) ---
     private void loadDetail() {
         apiService.getPokemonDetail(pokemonId).enqueue(new Callback<PokemonDetailResponse>() {
             @Override
@@ -71,7 +65,6 @@ public class DetailActivity extends AppCompatActivity {
                     pokemonName = data.getName();
                     binding.tvDetailName.setText(pokemonName);
 
-                    // 1. Types
                     StringBuilder sbType = new StringBuilder();
                     for (PokemonDetailResponse.TypeSlot slot : data.getTypes()) {
                         sbType.append(slot.getType().getName()).append(", ");
@@ -79,7 +72,6 @@ public class DetailActivity extends AppCompatActivity {
                     if (sbType.length() > 2) typeString = sbType.substring(0, sbType.length() - 2);
                     binding.tvDetailTypes.setText(typeString);
 
-                    // 2. Abilities (NEW)
                     StringBuilder sbAbility = new StringBuilder();
                     if (data.getAbilities() != null) {
                         for (PokemonDetailResponse.AbilitySlot slot : data.getAbilities()) {
@@ -88,7 +80,6 @@ public class DetailActivity extends AppCompatActivity {
                     }
                     binding.tvAbilities.setText(sbAbility.toString().trim());
 
-                    // 3. Stats
                     for (PokemonDetailResponse.StatSlot stat : data.getStats()) {
                         String name = stat.getStat().getName();
                         int val = stat.getBaseStat();
@@ -106,7 +97,6 @@ public class DetailActivity extends AppCompatActivity {
         });
     }
 
-    // --- STEP 2: LOAD SPECIES (Flavor Text & Get Evo URL) ---
     private void loadSpecies() {
         apiService.getPokemonSpecies(pokemonId).enqueue(new Callback<PokemonSpeciesResponse>() {
             @Override
@@ -114,10 +104,7 @@ public class DetailActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     PokemonSpeciesResponse species = response.body();
 
-                    // 1. Tampilkan Deskripsi
                     binding.tvDescription.setText(species.getDescription());
-
-                    // 2. Ambil URL Evolution Chain & Panggil Endpoint Selanjutnya
                     String evoUrl = species.getEvolutionChainUrl();
                     if (evoUrl != null) {
                         loadEvolution(evoUrl);
@@ -131,31 +118,22 @@ public class DetailActivity extends AppCompatActivity {
         });
     }
 
-    // --- STEP 3: LOAD EVOLUTION CHAIN ---
     private void loadEvolution(String url) {
-        // Perhatikan: parameter URL didapat dari step sebelumnya
         apiService.getEvolutionChain(url).enqueue(new Callback<EvolutionChainResponse>() {
             @Override
             public void onResponse(Call<EvolutionChainResponse> call, Response<EvolutionChainResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     EvolutionChainResponse.ChainLink chain = response.body().getChain();
-
-                    // Render UI Evolusi secara Dinamis
                     renderEvolutionChain(chain);
                 }
             }
             @Override
             public void onFailure(Call<EvolutionChainResponse> call, Throwable t) {
-                // Ignore or show error
             }
         });
     }
-
-    // Helper untuk merender Tree Evolusi ke LinearLayout
     private void renderEvolutionChain(EvolutionChainResponse.ChainLink currentChain) {
         if (currentChain == null) return;
-
-        // 1. Buat View untuk Pokemon saat ini
         View view = LayoutInflater.from(this).inflate(R.layout.item_pokemon_small, binding.layoutEvolution, false);
 
         TextView tvName = view.findViewById(R.id.tvNameSmall);
@@ -168,18 +146,11 @@ public class DetailActivity extends AppCompatActivity {
 
         Picasso.get().load(url).resize(150, 150).centerInside().into(img);
 
-        // Tambahkan ke Layout
         binding.layoutEvolution.addView(view);
-
-        // 2. Tambahkan Panah jika ada evolusi selanjutnya
         if (currentChain.getEvolvesTo() != null && !currentChain.getEvolvesTo().isEmpty()) {
-            // Tambah Icon Panah
             ImageView arrow = new ImageView(this);
-            arrow.setImageResource(android.R.drawable.ic_media_play); // Icon bawaan android
+            arrow.setImageResource(android.R.drawable.ic_media_play);
             binding.layoutEvolution.addView(arrow);
-
-            // 3. Rekursif ke evolusi berikutnya (Ambil yg pertama aja utk simplifikasi linear)
-            // Note: Eevee punya banyak cabang, tapi untuk 'Lite' kita ambil index 0 dulu.
             renderEvolutionChain(currentChain.getEvolvesTo().get(0));
         }
     }
