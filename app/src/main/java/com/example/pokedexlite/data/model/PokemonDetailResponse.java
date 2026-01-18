@@ -17,12 +17,15 @@ public class PokemonDetailResponse {
     @SerializedName("stats")
     private List<StatSlot> stats;
 
+    @SerializedName("abilities")
+    private List<AbilitySlot> abilities;
     public int getId() { return id; }
     public String getName() { return name; }
     public int getHeight() { return height; }
     public int getWeight() { return weight; }
     public List<TypeSlot> getTypes() { return types; }
     public List<StatSlot> getStats() { return stats; }
+    public List<AbilitySlot> getAbilities() { return abilities; }
 
     public static class TypeSlot {
         @SerializedName("type")
@@ -38,6 +41,13 @@ public class PokemonDetailResponse {
 
         public int getBaseStat() { return baseStat; }
         public NamedResource getStat() { return stat; }
+    }
+
+    public static class AbilitySlot {
+        @SerializedName("ability")
+        private NamedResource ability;
+
+        public NamedResource getAbility() { return ability; }
     }
 
     public static class NamedResource {
