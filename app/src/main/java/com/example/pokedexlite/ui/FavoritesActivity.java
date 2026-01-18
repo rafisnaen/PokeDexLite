@@ -22,7 +22,13 @@ public class FavoritesActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         setTitle("My Favorites");
         binding.progressBar.setVisibility(View.GONE);
-        binding.tvTitle.setText("FAVORITE POKEMON");
+
+        setSupportActionBar(binding.toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("FAVORITE POKEMON");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+        binding.progressBar.setVisibility(View.GONE);
 
         dbHelper = new DatabaseHelper(this);
         binding.recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
@@ -33,7 +39,11 @@ public class FavoritesActivity extends AppCompatActivity {
         super.onResume();
         loadFavorites();
     }
-
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
+    }
     private void loadFavorites() {
         Cursor cursor = dbHelper.getAllFavorites();
         List<PokemonListResponse.PokemonResult> list = new ArrayList<>();

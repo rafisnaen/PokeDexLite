@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        setSupportActionBar(binding.toolbar);
         dbHelper = new DatabaseHelper(this);
         apiService = RetrofitClient.getService();
         binding.recyclerView.setLayoutManager(new GridLayoutManager(this, 2));

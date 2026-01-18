@@ -34,7 +34,13 @@ public class TeamActivity extends AppCompatActivity {
 
         setTitle("My Dream Team (6 Slots)");
         binding.progressBar.setVisibility(View.GONE);
-        binding.tvTitle.setText("MY TEAM");
+        setSupportActionBar(binding.toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("MY DREAM TEAM");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
+        binding.progressBar.setVisibility(View.GONE);
 
         dbHelper = new DatabaseHelper(this);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -45,7 +51,11 @@ public class TeamActivity extends AppCompatActivity {
         super.onResume();
         loadTeam();
     }
-
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
+    }
     private void loadTeam() {
         List<TeamItem> teamList = new ArrayList<>();
         Cursor cursor = dbHelper.getTeam();
