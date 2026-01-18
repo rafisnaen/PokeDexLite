@@ -24,38 +24,28 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Setup ViewBinding
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Init Database
         dbHelper = new DatabaseHelper(this);
 
-        // Init API
         apiService = RetrofitClient.getService();
 
-        // Setup RecyclerView
         binding.recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
         loadPokemonData();
     }
 
     private void loadPokemonData() {
-        // Cek Cache dulu (Logic Offline Mode) [cite: 99]
-        // Untuk simplifikasi, kita panggil API langsung disini.
-        // Idealnya: Check Connection -> if connected (API & Save Cache) -> else (Load Cache)
-
-        Call<PokemonListResponse> call = apiService.getPokemonList(20, 0); // Limit 20 [cite: 49]
+        Call<PokemonListResponse> call = apiService.getPokemonList(20, 0);
 
         call.enqueue(new Callback<PokemonListResponse>() {
             @Override
             public void onResponse(Call<PokemonListResponse> call, Response<PokemonListResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    // Tampilkan Data
                     PokemonAdapter adapter = new PokemonAdapter(response.body().getResults());
                     binding.recyclerView.setAdapter(adapter);
 
-                    // SIMPAN CACHE (Contoh implementasi) [cite: 98]
                     String json = new Gson().toJson(response.body());
                     dbHelper.saveCache("home_list", json);
                 }
@@ -65,7 +55,6 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(Call<PokemonListResponse> call, Throwable t) {
                 Toast.makeText(MainActivity.this, "Network Error. Loading Cache...", Toast.LENGTH_SHORT).show();
 
-                // Load dari Cache jika error/offline [cite: 70]
                 String cachedJson = dbHelper.getCache("home_list");
                 if (cachedJson != null) {
                     PokemonListResponse cachedResponse = new Gson().fromJson(cachedJson, PokemonListResponse.class);
