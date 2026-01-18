@@ -24,6 +24,11 @@ public class PokemonListResponse {
             String[] parts = url.split("/");
             return Integer.parseInt(parts[parts.length - 1]);
         }
+        public void setManualData(String name, String imageUrl) {
+            this.name = name;
+            String tempId = imageUrl.substring(imageUrl.lastIndexOf("/") + 1).replace(".png", "");
+            this.url = "https://pokeapi.co/api/v2/pokemon/" + tempId + "/";
+        }
 
         public String getImageUrl() {
             return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/" + getId() + ".png";

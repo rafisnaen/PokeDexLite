@@ -26,16 +26,30 @@ public class MainActivity extends AppCompatActivity {
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
         dbHelper = new DatabaseHelper(this);
-
         apiService = RetrofitClient.getService();
-
         binding.recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
         loadPokemonData();
     }
+    @Override
+    public boolean onCreateOptionsMenu(android.view.Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(@androidx.annotation.NonNull android.view.MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_favorites) {
+            startActivity(new android.content.Intent(this, FavoritesActivity.class));
+            return true;
+        } else if (id == R.id.action_team) {
+            startActivity(new android.content.Intent(this, TeamActivity.class));
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
     private void loadPokemonData() {
         Call<PokemonListResponse> call = apiService.getPokemonList(20, 0);
 
