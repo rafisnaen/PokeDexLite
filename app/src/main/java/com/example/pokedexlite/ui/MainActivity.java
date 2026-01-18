@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
+
+import com.example.pokedexlite.R;
 import com.example.pokedexlite.data.local.DatabaseHelper;
 import com.example.pokedexlite.data.model.PokemonListResponse;
 import com.example.pokedexlite.data.remote.PokeApiService;
