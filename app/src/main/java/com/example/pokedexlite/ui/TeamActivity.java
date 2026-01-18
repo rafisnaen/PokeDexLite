@@ -11,6 +11,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.pokedexlite.R;
@@ -44,6 +47,7 @@ public class TeamActivity extends AppCompatActivity {
 
         dbHelper = new DatabaseHelper(this);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        hideSystemUI();
     }
 
     @Override
@@ -138,5 +142,13 @@ public class TeamActivity extends AppCompatActivity {
                 btnRemove = itemView.findViewById(R.id.btnRemove);
             }
         }
+    }
+    private void hideSystemUI() {
+        WindowInsetsControllerCompat windowInsetsController =
+                WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        windowInsetsController.setSystemBarsBehavior(
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        );
+        windowInsetsController.hide(WindowInsetsCompat.Type.statusBars());
     }
 }

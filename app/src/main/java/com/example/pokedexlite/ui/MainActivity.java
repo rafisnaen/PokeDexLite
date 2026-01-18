@@ -4,6 +4,9 @@ import android.os.Bundle;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.example.pokedexlite.R;
 import com.example.pokedexlite.data.local.DatabaseHelper;
@@ -34,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
         binding.recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
         loadPokemonData();
+        hideSystemUI();
     }
     @Override
     public boolean onCreateOptionsMenu(android.view.Menu menu) {
@@ -80,5 +84,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+    private void hideSystemUI() {
+        WindowInsetsControllerCompat windowInsetsController =
+                WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        windowInsetsController.setSystemBarsBehavior(
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        );
+        windowInsetsController.hide(WindowInsetsCompat.Type.statusBars());
     }
 }

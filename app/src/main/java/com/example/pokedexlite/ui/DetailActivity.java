@@ -7,6 +7,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
+
 import com.example.pokedexlite.R;
 import com.example.pokedexlite.data.local.DatabaseHelper;
 import com.example.pokedexlite.data.model.EvolutionChainResponse;
@@ -53,6 +57,7 @@ public class DetailActivity extends AppCompatActivity {
         loadSpecies();
 
         setupButtons();
+        hideSystemUI();
     }
 
     private void loadDetail() {
@@ -185,5 +190,13 @@ public class DetailActivity extends AppCompatActivity {
 
     private void updateFavoriteButtonState() {
         binding.btnToggleFav.setText(dbHelper.isFavorite(pokemonId) ? "Remove Fav" : "Add to Fav");
+    }
+    private void hideSystemUI() {
+        WindowInsetsControllerCompat windowInsetsController =
+                WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        windowInsetsController.setSystemBarsBehavior(
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        );
+        windowInsetsController.hide(WindowInsetsCompat.Type.statusBars());
     }
 }
