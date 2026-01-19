@@ -8,216 +8,121 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-    private static final String DATABASE_NAME = "Pokedex.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final String DATABASE_NAME = "pokedex.db";
+    private static final int DATABASE_VERSION = 5;
 
-    private static final String TABLE_FAVORITES = "favorites";
-    private static final String TABLE_TEAM = "team";
-    private static final String TABLE_HISTORY = "history";
-    private static final String TABLE_CACHE = "api_cache";
-
-    private static final String COL_CACHE_KEY = "cache_key";
-    private static final String COL_CACHE_JSON = "json";
-    private static final String COL_CACHE_TIME = "fetched_at";
-
-    private static final String COL_HISTORY_QUERY = "search_query";
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String CREATE_FAVORITES = "CREATE TABLE " + TABLE_FAVORITES + " (" +
-                "pokemon_id INTEGER PRIMARY KEY, " +
-                "name TEXT, " +
-                "image_url TEXT, " +
-                "types TEXT, " +
-                "saved_at INTEGER)";
-        db.execSQL(CREATE_FAVORITES);
-
-        String CREATE_TEAM = "CREATE TABLE " + TABLE_TEAM + " (" +
-                "slot INTEGER PRIMARY KEY, " +
-                "pokemon_id INTEGER, " +
-                "name TEXT, " +
-                "image_url TEXT, " +
-                "types TEXT, " +
-                "note TEXT, " +
-                "updated_at INTEGER)";
-        db.execSQL(CREATE_TEAM);
-
-        String CREATE_CACHE = "CREATE TABLE " + TABLE_CACHE + " (" +
-                COL_CACHE_KEY + " TEXT PRIMARY KEY, " +
-                COL_CACHE_JSON + " TEXT, " +
-                COL_CACHE_TIME + " INTEGER)";
-        db.execSQL(CREATE_CACHE);
-
-        createHistoryTable(db);
+        db.execSQL("CREATE TABLE favorites (id INTEGER PRIMARY KEY, name TEXT, image_url TEXT)");
+        db.execSQL("CREATE TABLE team (id INTEGER PRIMARY KEY AUTOINCREMENT, pokemon_id INTEGER, name TEXT, image_url TEXT, types TEXT, note TEXT)");
+        db.execSQL("CREATE TABLE api_cache (cache_key TEXT PRIMARY KEY, json TEXT)");
+        db.execSQL("CREATE TABLE history (id INTEGER PRIMARY KEY AUTOINCREMENT, search_query TEXT, pokemon_id INTEGER, name TEXT, created_at INTEGER)");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_FAVORITES);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_TEAM);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CACHE);
-
-        String CREATE_FAVORITES = "CREATE TABLE " + TABLE_FAVORITES + " (" +
-                "pokemon_id INTEGER PRIMARY KEY, " +
-                "name TEXT, " +
-                "image_url TEXT, " +
-                "types TEXT, " +
-                "saved_at INTEGER)";
-        db.execSQL(CREATE_FAVORITES);
-
-        String CREATE_TEAM = "CREATE TABLE " + TABLE_TEAM + " (" +
-                "slot INTEGER PRIMARY KEY, " +
-                "pokemon_id INTEGER, " +
-                "name TEXT, " +
-                "image_url TEXT, " +
-                "types TEXT, " +
-                "note TEXT, " +
-                "updated_at INTEGER)";
-        db.execSQL(CREATE_TEAM);
-
-        String CREATE_CACHE = "CREATE TABLE " + TABLE_CACHE + " (" +
-                COL_CACHE_KEY + " TEXT PRIMARY KEY, " +
-                COL_CACHE_JSON + " TEXT, " +
-                COL_CACHE_TIME + " INTEGER)";
-        db.execSQL(CREATE_CACHE);
-
-        if (oldVersion < 2) {
-            db.execSQL("DROP TABLE IF EXISTS " + TABLE_HISTORY);
-            createHistoryTable(db);
-        }
+        db.execSQL("DROP TABLE IF EXISTS favorites");
+        db.execSQL("DROP TABLE IF EXISTS team");
+        db.execSQL("DROP TABLE IF EXISTS api_cache");
+        db.execSQL("DROP TABLE IF EXISTS history");
+        onCreate(db);
     }
 
-    private void createHistoryTable(SQLiteDatabase db) {
-        String CREATE_HISTORY = "CREATE TABLE " + TABLE_HISTORY + " (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                COL_HISTORY_QUERY + " TEXT, " +
-                "pokemon_id INTEGER, " +
-                "name TEXT, " +
-                "created_at INTEGER)";
-        db.execSQL(CREATE_HISTORY);
+    public Cursor getAllFavorites() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM favorites", null);
+    }
+
+    public boolean isFavorite(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM favorites WHERE id = ?", new String[]{String.valueOf(id)});
+        boolean exists = cursor.getCount() > 0;
+        cursor.close();
+        return exists;
+    }
+
+    public void addFavorite(int id, String name, String imageUrl) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("id", id);
+        values.put("name", name);
+        values.put("image_url", imageUrl);
+        db.insert("favorites", null, values);
+    }
+
+    public void removeFavorite(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete("favorites", "id = ?", new String[]{String.valueOf(id)});
+    }
+
+    public Cursor getTeam() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM team", null);
+    }
+
+    public int getTeamCount() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT count(*) FROM team", null);
+        int count = 0;
+        if (cursor.moveToFirst()) {
+            count = cursor.getInt(0);
+        }
+        cursor.close();
+        return count;
+    }
+    public void addToTeam(int pokemonId, String name, String imageUrl, String types) {
+        if (getTeamCount() >= 6) return;
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("pokemon_id", pokemonId);
+        values.put("name", name);
+        values.put("image_url", imageUrl);
+        values.put("types", types);
+        values.put("note", "");
+        db.insert("team", null, values);
+    }
+
+    public void updateTeamNote(int id, String newNote) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("note", newNote);
+        db.update("team", values, "id = ?", new String[]{String.valueOf(id)});
+    }
+    public void removeFromTeam(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete("team", "id = ?", new String[]{String.valueOf(id)});
+    }
+    public Cursor getHistory() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM history ORDER BY created_at DESC", null);
     }
 
     public void addHistory(String query, int pokemonId, String name) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(COL_HISTORY_QUERY, query);
+        values.put("search_query", query);
         values.put("pokemon_id", pokemonId);
         values.put("name", name);
         values.put("created_at", System.currentTimeMillis());
-        db.insert(TABLE_HISTORY, null, values);
+        db.insert("history", null, values);
     }
     public void saveCache(String key, String json) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-
-        values.put(COL_CACHE_KEY, key);
-        values.put(COL_CACHE_JSON, json);
-        values.put(COL_CACHE_TIME, System.currentTimeMillis());
-        db.replace(TABLE_CACHE, null, values);
+        values.put("cache_key", key);
+        values.put("json", json);
+        db.replace("api_cache", null, values);
     }
-
     public String getCache(String key) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_CACHE,
-                new String[]{COL_CACHE_JSON},
-                COL_CACHE_KEY + "=?",
-                new String[]{key},
-                null, null, null);
-
-        if (cursor != null && cursor.moveToFirst()) {
-            String json = cursor.getString(0);
-            cursor.close();
-            return json;
-        }
-        return null;
-    }
-
-    public Cursor getHistory() {
-        SQLiteDatabase db = this.getReadableDatabase();
-        return db.rawQuery("SELECT * FROM " + TABLE_HISTORY + " ORDER BY created_at DESC", null);
-    }
-
-    public void clearHistory() {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_HISTORY, null, null);
-    }
-
-    public Cursor getTeam() {
-        SQLiteDatabase db = this.getReadableDatabase();
-        return db.rawQuery("SELECT * FROM " + TABLE_TEAM, null);
-    }
-
-    public void addFavorite(int id, String name, String imageUrl, String types) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("pokemon_id", id);
-        values.put("name", name);
-        values.put("image_url", imageUrl);
-        values.put("types", types);
-        values.put("saved_at", System.currentTimeMillis());
-        db.insertWithOnConflict(TABLE_FAVORITES, null, values, SQLiteDatabase.CONFLICT_IGNORE);
-    }
-
-    public void removeFavorite(int id) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_FAVORITES, "pokemon_id=?", new String[]{String.valueOf(id)});
-    }
-
-    public boolean isFavorite(int id) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT 1 FROM " + TABLE_FAVORITES + " WHERE pokemon_id=?", new String[]{String.valueOf(id)});
-        boolean exists = (cursor.getCount() > 0);
+        Cursor cursor = db.rawQuery("SELECT json FROM api_cache WHERE cache_key = ?", new String[]{key});
+        String result = null;
+        if (cursor.moveToFirst()) result = cursor.getString(0);
         cursor.close();
-        return exists;
-    }
-
-    public Cursor getAllFavorites() {
-        SQLiteDatabase db = this.getReadableDatabase();
-        return db.rawQuery("SELECT * FROM " + TABLE_FAVORITES + " ORDER BY saved_at DESC", null);
-    }
-
-    public int getAvailableTeamSlot() {
-        SQLiteDatabase db = this.getReadableDatabase();
-        for (int i = 1; i <= 6; i++) {
-            Cursor cursor = db.rawQuery("SELECT 1 FROM " + TABLE_TEAM + " WHERE slot=?", new String[]{String.valueOf(i)});
-            if (cursor.getCount() == 0) {
-                cursor.close();
-                return i;
-            }
-            cursor.close();
-        }
-        return -1;
-    }
-
-    public void addToTeam(int slot, int id, String name, String imageUrl, String types, String note) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("slot", slot);
-        values.put("pokemon_id", id);
-        values.put("name", name);
-        values.put("image_url", imageUrl);
-        values.put("types", types);
-        values.put("note", note != null ? note : "");
-        values.put("updated_at", System.currentTimeMillis());
-
-        db.replace(TABLE_TEAM, null, values);
-    }
-    public void updateTeamNote(int slot, String newNote) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("note", newNote);
-        values.put("updated_at", System.currentTimeMillis());
-        db.update(TABLE_TEAM, values, "slot=?", new String[]{String.valueOf(slot)});
-    }
-
-    public boolean isInTeam(int id) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT 1 FROM " + TABLE_TEAM + " WHERE pokemon_id=?", new String[]{String.valueOf(id)});
-        boolean exists = (cursor.getCount() > 0);
-        cursor.close();
-        return exists;
+        return result;
     }
 }

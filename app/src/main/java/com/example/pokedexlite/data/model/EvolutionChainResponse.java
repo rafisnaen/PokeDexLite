@@ -18,25 +18,17 @@ public class EvolutionChainResponse {
         @SerializedName("evolves_to")
         private List<ChainLink> evolvesTo;
 
-        public String getSpeciesName() {
-            return species != null ? species.name : "";
-        }
-
-        public List<ChainLink> getEvolvesTo() {
-            return evolvesTo;
-        }
-
-        public int getSpeciesId() {
-            if (species == null || species.url == null) return 0;
-            String[] parts = species.url.split("/");
-            return Integer.parseInt(parts[parts.length - 1]);
-        }
+        public NamedResource getSpecies() { return species; }
+        public List<ChainLink> getEvolvesTo() { return evolvesTo; }
     }
 
-    private static class NamedResource {
+    public static class NamedResource {
         @SerializedName("name")
-        String name;
+        private String name;
         @SerializedName("url")
-        String url;
+        private String url;
+
+        public String getName() { return name; }
+        public String getUrl() { return url; }
     }
 }

@@ -4,42 +4,39 @@ import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
 public class PokemonSpeciesResponse {
+    @SerializedName("flavor_text_entries")
+    private List<FlavorTextEntry> flavorTextEntries;
 
     @SerializedName("evolution_chain")
     private EvolutionChainUrl evolutionChain;
 
-    @SerializedName("flavor_text_entries")
-    private List<FlavorTextEntry> flavorTextEntries;
-
-    public String getEvolutionChainUrl() {
-        return evolutionChain != null ? evolutionChain.url : null;
+    public List<FlavorTextEntry> getFlavorTextEntries() {
+        return flavorTextEntries;
     }
 
-    public String getDescription() {
-        if (flavorTextEntries != null && !flavorTextEntries.isEmpty()) {
-            for (FlavorTextEntry entry : flavorTextEntries) {
-                if ("en".equals(entry.language.name)) {
-                    return entry.flavorText.replace("\n", " ").replace("\f", " ");
-                }
-            }
-        }
-        return "No description provided for this pokemon";
+    public EvolutionChainUrl getEvolutionChain() {
+        return evolutionChain;
     }
 
-    private static class EvolutionChainUrl {
-        @SerializedName("url")
-        String url;
-    }
-
-    private static class FlavorTextEntry {
+    public static class FlavorTextEntry {
         @SerializedName("flavor_text")
-        String flavorText;
+        private String flavorText;
         @SerializedName("language")
-        NamedResource language;
+        private NamedResource language;
+
+        public String getFlavorText() { return flavorText; }
+        public NamedResource getLanguage() { return language; }
     }
 
-    private static class NamedResource {
+    public static class EvolutionChainUrl {
+        @SerializedName("url")
+        private String url;
+        public String getUrl() { return url; }
+    }
+
+    public static class NamedResource {
         @SerializedName("name")
-        String name;
+        private String name;
+        public String getName() { return name; }
     }
 }

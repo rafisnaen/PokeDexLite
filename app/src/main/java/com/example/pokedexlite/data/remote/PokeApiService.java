@@ -13,12 +13,10 @@ import retrofit2.http.Url;
 
 public interface PokeApiService {
     @GET("pokemon")
-    Call<PokemonListResponse> getPokemonList(
-            @Query("limit") int limit,
-            @Query("offset") int offset
-    );
-    @GET("pokemon/{id}")
-    Call<PokemonDetailResponse> getPokemonDetail(@Path("id") String nameOrId);
+    Call<PokemonListResponse> getPokemonList(@Query("limit") int limit, @Query("offset") int offset);
+    @GET("pokemon/{name}")
+    Call<PokemonDetailResponse> getPokemonDetail(@Path("name") String name);
+
     @GET("pokemon-species/{id}")
     Call<PokemonSpeciesResponse> getPokemonSpecies(@Path("id") int id);
     @GET

@@ -1,48 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_pokemon"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
     app:cardCornerRadius="16dp"
     app:cardElevation="4dp"
-    app:cardBackgroundColor="@android:color/white">
+    app:cardBackgroundColor="@color/white">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="12dp">
 
+        <TextView
+            android:id="@+id/tv_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            tools:text="#001"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
         <ImageView
-            android:id="@+id/imgPokemon"
+            android:id="@+id/iv_pokemon"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:contentDescription="Pokemon Sprite"
+            android:layout_below="@id/tv_id"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="4dp"
             android:scaleType="fitCenter"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:srcCompat="@drawable/ic_launcher_background" />
+            tools:src="@mipmap/ic_launcher" />
 
         <TextView
-            android:id="@+id/tvName"
-            android:layout_width="0dp"
+            android:id="@+id/tv_name"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_below="@id/iv_pokemon"
+            android:layout_centerHorizontal="true"
             android:layout_marginTop="8dp"
-            android:fontFamily="sans-serif-condensed-medium"
-            android:gravity="center"
+            tools:text="Bulbasaur"
             android:textAllCaps="true"
-            android:textColor="#333333"
+            android:textColor="@color/text_dark"
             android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tv_name"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="8dp"
+            tools:text="GRASS"
+            android:textSize="10sp"
+            android:textColor="@color/white"
             android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/imgPokemon"
-            tools:text="BULBASAUR" />
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:background="@drawable/bg_type_pill" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </RelativeLayout>
 
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

@@ -1,5 +1,6 @@
 package com.example.pokedexlite.ui;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,6 +11,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,15 +20,16 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.pokedexlite.R;
 import com.example.pokedexlite.data.local.DatabaseHelper;
 import com.example.pokedexlite.databinding.ActivityMainBinding;
 import com.squareup.picasso.Picasso;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class TeamActivity extends AppCompatActivity {
-
     private ActivityMainBinding binding;
     private DatabaseHelper dbHelper;
     private TeamAdapter adapter;
@@ -45,6 +48,7 @@ public class TeamActivity extends AppCompatActivity {
         binding.progressBar.setVisibility(View.GONE);
         dbHelper = new DatabaseHelper(this);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
         hideSystemUI();
     }
 
@@ -64,32 +68,32 @@ public class TeamActivity extends AppCompatActivity {
         List<TeamItem> teamList = new ArrayList<>();
         Cursor cursor = dbHelper.getTeam();
 
-        if (cursor != null && cursor.moveToFirst()) {
-            do {
-                TeamItem item = new TeamItem();
-                item.slot = cursor.getInt(0);
-                item.id = cursor.getInt(1);
-                item.name = cursor.getString(2);
-                item.imageUrl = cursor.getString(3);
-                item.types = cursor.getString(4);
-                // Ambil kolom note (index 5 sesuai urutan create table)
-                item.note = cursor.getString(5);
-                teamList.add(item);
-            } while (cursor.moveToNext());
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    TeamItem item = new TeamItem();
+                    item.dbId = cursor.getInt(0);
+                    item.pokemonId = cursor.getInt(1);
+                    item.name = cursor.getString(2);
+                    item.imageUrl = cursor.getString(3);
+                    item.types = cursor.getString(4);
+                    item.note = cursor.getString(5);
+
+                    teamList.add(item);
+                } while (cursor.moveToNext());
+            }
             cursor.close();
         }
-
         if (teamList.isEmpty()) {
-            Toast.makeText(this, "Team is empty!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Your team is empty. Go add some Pokemon!", Toast.LENGTH_SHORT).show();
         }
 
         adapter = new TeamAdapter(teamList);
         binding.recyclerView.setAdapter(adapter);
     }
-
     static class TeamItem {
-        int slot;
-        int id;
+        int dbId;
+        int pokemonId;
         String name;
         String imageUrl;
         String types;
@@ -99,7 +103,9 @@ public class TeamActivity extends AppCompatActivity {
     class TeamAdapter extends RecyclerView.Adapter<TeamAdapter.TeamViewHolder> {
         List<TeamItem> list;
 
-        public TeamAdapter(List<TeamItem> list) { this.list = list; }
+        public TeamAdapter(List<TeamItem> list) {
+            this.list = list;
+        }
 
         @NonNull
         @Override
@@ -111,36 +117,51 @@ public class TeamActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull TeamViewHolder holder, int position) {
             TeamItem item = list.get(position);
-            holder.tvSlot.setText("#" + item.slot);
-            holder.tvName.setText(item.name);
-            holder.tvTypes.setText(item.types);
-            Picasso.get().load(item.imageUrl).into(holder.img);
+            holder.tvSlot.setText("#" + (position + 1));
 
+            holder.tvName.setText(item.name);
+            if (item.types != null && !item.types.isEmpty()) {
+                holder.tvTypes.setText(item.types);
+            } else {
+                holder.tvTypes.setText("-");
+            }
+            Picasso.get()
+                    .load(item.imageUrl)
+                    .placeholder(R.drawable.ic_launcher_foreground)
+                    .error(R.drawable.ic_launcher_foreground)
+                    .into(holder.img);
             if (item.note == null || item.note.isEmpty()) {
-                holder.tvNote.setText("Role: (No Note)");
+                holder.tvNote.setText("Role: (Tap edit icon)");
             } else {
                 holder.tvNote.setText("Role: " + item.note);
             }
-
             holder.btnEditNote.setOnClickListener(v -> {
                 showEditNoteDialog(item);
             });
-
             holder.btnRemove.setOnClickListener(v -> {
-                dbHelper.getWritableDatabase().delete("team", "slot=?", new String[]{String.valueOf(item.slot)});
-                Toast.makeText(TeamActivity.this, "Removed from Slot " + item.slot, Toast.LENGTH_SHORT).show();
-                loadTeam();
+                new AlertDialog.Builder(TeamActivity.this)
+                        .setTitle("Remove Pokemon")
+                        .setMessage("Remove " + item.name + " from team?")
+                        .setPositiveButton("Yes", (dialog, which) -> {
+                            dbHelper.removeFromTeam(item.dbId);
+                            Toast.makeText(TeamActivity.this, "Removed " + item.name, Toast.LENGTH_SHORT).show();
+                            loadTeam();
+                        })
+                        .setNegativeButton("No", null)
+                        .show();
             });
-
             holder.itemView.setOnClickListener(v -> {
-                android.content.Intent intent = new android.content.Intent(TeamActivity.this, DetailActivity.class);
-                intent.putExtra("EXTRA_ID", item.id);
+                Intent intent = new Intent(TeamActivity.this, DetailActivity.class);
+                intent.putExtra("EXTRA_NAME", item.name);
+                intent.putExtra("EXTRA_ID", item.pokemonId);
                 startActivity(intent);
             });
         }
 
         @Override
-        public int getItemCount() { return list.size(); }
+        public int getItemCount() {
+            return list.size();
+        }
 
         class TeamViewHolder extends RecyclerView.ViewHolder {
             TextView tvSlot, tvName, tvTypes, tvNote;
@@ -162,27 +183,39 @@ public class TeamActivity extends AppCompatActivity {
 
     private void showEditNoteDialog(TeamItem item) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Set Team Role/Note");
-        builder.setMessage("Give a custom role name for " + item.name + " (e.g., Tank, Support)");
+        builder.setTitle("Set Role for " + item.name);
+        builder.setMessage("E.g., Tank, Sweeper, Support");
 
         final EditText input = new EditText(this);
         input.setText(item.note);
-        builder.setView(input);
+        input.setSingleLine(true);
+        android.widget.FrameLayout container = new android.widget.FrameLayout(this);
+        android.widget.FrameLayout.LayoutParams params = new  android.widget.FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.leftMargin = 50;
+        params.rightMargin = 50;
+        input.setLayoutParams(params);
+        container.addView(input);
+
+        builder.setView(container);
+
         builder.setPositiveButton("Save", (dialog, which) -> {
-            String newNote = input.getText().toString();
-            dbHelper.updateTeamNote(item.slot, newNote);
+            String newNote = input.getText().toString().trim();
+            dbHelper.updateTeamNote(item.dbId, newNote);
             loadTeam();
         });
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
 
         builder.show();
     }
+
     private void hideSystemUI() {
         WindowInsetsControllerCompat windowInsetsController =
                 WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
-        windowInsetsController.setSystemBarsBehavior(
-                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        );
-        windowInsetsController.hide(WindowInsetsCompat.Type.statusBars());
+        if (windowInsetsController != null) {
+            windowInsetsController.setSystemBarsBehavior(
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            );
+            windowInsetsController.hide(WindowInsetsCompat.Type.statusBars());
+        }
     }
 }
