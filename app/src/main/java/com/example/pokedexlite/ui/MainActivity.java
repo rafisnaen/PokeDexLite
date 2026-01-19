@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
+        setTheme(R.style.Theme_PokeDexLite);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
