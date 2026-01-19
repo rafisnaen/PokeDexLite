@@ -5,11 +5,13 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -34,9 +36,6 @@ public class TeamActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
-        setTitle("My Dream Team (6 Slots)");
-        binding.progressBar.setVisibility(View.GONE);
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("MY DREAM TEAM");
@@ -44,10 +43,15 @@ public class TeamActivity extends AppCompatActivity {
         }
 
         binding.progressBar.setVisibility(View.GONE);
-
         dbHelper = new DatabaseHelper(this);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         hideSystemUI();
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
     }
 
     @Override
@@ -55,11 +59,7 @@ public class TeamActivity extends AppCompatActivity {
         super.onResume();
         loadTeam();
     }
-    @Override
-    public boolean onSupportNavigateUp() {
-        finish();
-        return true;
-    }
+
     private void loadTeam() {
         List<TeamItem> teamList = new ArrayList<>();
         Cursor cursor = dbHelper.getTeam();
@@ -72,6 +72,8 @@ public class TeamActivity extends AppCompatActivity {
                 item.name = cursor.getString(2);
                 item.imageUrl = cursor.getString(3);
                 item.types = cursor.getString(4);
+                // Ambil kolom note (index 5 sesuai urutan create table)
+                item.note = cursor.getString(5);
                 teamList.add(item);
             } while (cursor.moveToNext());
             cursor.close();
@@ -91,6 +93,7 @@ public class TeamActivity extends AppCompatActivity {
         String name;
         String imageUrl;
         String types;
+        String note;
     }
 
     class TeamAdapter extends RecyclerView.Adapter<TeamAdapter.TeamViewHolder> {
@@ -112,6 +115,17 @@ public class TeamActivity extends AppCompatActivity {
             holder.tvName.setText(item.name);
             holder.tvTypes.setText(item.types);
             Picasso.get().load(item.imageUrl).into(holder.img);
+
+            if (item.note == null || item.note.isEmpty()) {
+                holder.tvNote.setText("Role: (No Note)");
+            } else {
+                holder.tvNote.setText("Role: " + item.note);
+            }
+
+            holder.btnEditNote.setOnClickListener(v -> {
+                showEditNoteDialog(item);
+            });
+
             holder.btnRemove.setOnClickListener(v -> {
                 dbHelper.getWritableDatabase().delete("team", "slot=?", new String[]{String.valueOf(item.slot)});
                 Toast.makeText(TeamActivity.this, "Removed from Slot " + item.slot, Toast.LENGTH_SHORT).show();
@@ -129,19 +143,39 @@ public class TeamActivity extends AppCompatActivity {
         public int getItemCount() { return list.size(); }
 
         class TeamViewHolder extends RecyclerView.ViewHolder {
-            TextView tvSlot, tvName, tvTypes;
+            TextView tvSlot, tvName, tvTypes, tvNote;
             ImageView img;
-            ImageButton btnRemove;
+            ImageButton btnRemove, btnEditNote;
 
             public TeamViewHolder(View itemView) {
                 super(itemView);
                 tvSlot = itemView.findViewById(R.id.tvSlot);
                 tvName = itemView.findViewById(R.id.tvTeamName);
                 tvTypes = itemView.findViewById(R.id.tvTeamTypes);
+                tvNote = itemView.findViewById(R.id.tvTeamNote);
                 img = itemView.findViewById(R.id.imgTeam);
                 btnRemove = itemView.findViewById(R.id.btnRemove);
+                btnEditNote = itemView.findViewById(R.id.btnEditNote);
             }
         }
+    }
+
+    private void showEditNoteDialog(TeamItem item) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Set Team Role/Note");
+        builder.setMessage("Give a custom role name for " + item.name + " (e.g., Tank, Support)");
+
+        final EditText input = new EditText(this);
+        input.setText(item.note);
+        builder.setView(input);
+        builder.setPositiveButton("Save", (dialog, which) -> {
+            String newNote = input.getText().toString();
+            dbHelper.updateTeamNote(item.slot, newNote);
+            loadTeam();
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        builder.show();
     }
     private void hideSystemUI() {
         WindowInsetsControllerCompat windowInsetsController =

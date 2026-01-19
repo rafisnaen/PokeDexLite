@@ -61,7 +61,6 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     private void loadDetail() {
-        // PERBAIKAN DI SINI: Konversi int ke String
         apiService.getPokemonDetail(String.valueOf(pokemonId)).enqueue(new Callback<PokemonDetailResponse>() {
             @Override
             public void onResponse(Call<PokemonDetailResponse> call, Response<PokemonDetailResponse> response) {
@@ -183,7 +182,7 @@ public class DetailActivity extends AppCompatActivity {
                 int slot = dbHelper.getAvailableTeamSlot();
                 if (slot == -1) Toast.makeText(this, "Team Full!", Toast.LENGTH_SHORT).show();
                 else {
-                    dbHelper.addToTeam(slot, pokemonId, pokemonName, imageUrl, typeString);
+                    dbHelper.addToTeam(slot, pokemonId, pokemonName, imageUrl, typeString, "");
                     Toast.makeText(this, "Added to Slot " + slot, Toast.LENGTH_SHORT).show();
                 }
             }

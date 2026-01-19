@@ -192,7 +192,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return -1;
     }
 
-    public void addToTeam(int slot, int id, String name, String imageUrl, String types) {
+    public void addToTeam(int slot, int id, String name, String imageUrl, String types, String note) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("slot", slot);
@@ -200,9 +200,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put("name", name);
         values.put("image_url", imageUrl);
         values.put("types", types);
+        values.put("note", note != null ? note : "");
         values.put("updated_at", System.currentTimeMillis());
 
         db.replace(TABLE_TEAM, null, values);
+    }
+    public void updateTeamNote(int slot, String newNote) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("note", newNote);
+        values.put("updated_at", System.currentTimeMillis());
+        db.update(TABLE_TEAM, values, "slot=?", new String[]{String.valueOf(slot)});
     }
 
     public boolean isInTeam(int id) {
