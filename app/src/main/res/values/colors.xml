@@ -24,4 +24,9 @@
     <color name="type_dragon">#7038F8</color>
     <color name="type_steel">#B8B8D0</color>
     <color name="type_fairy">#EE99AC</color>
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@android:color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/pokedex_icon</item>
+        <item name="postSplashScreenTheme">@style/Theme.PokeDexLite</item>
+    </style>
 </resources>
