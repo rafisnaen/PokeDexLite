@@ -41,20 +41,13 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         PokemonListResponse.PokemonResult pokemon = pokemonList.get(position);
-
-        // 1. Set Nama (Kapitalisasi huruf pertama biar rapi)
         String name = pokemon.getName();
         if (name != null && !name.isEmpty()) {
             holder.tvName.setText(name.substring(0, 1).toUpperCase() + name.substring(1));
         }
 
-        // 2. Extract ID dari URL untuk ditampilkan (Contoh URL: .../pokemon/1/)
         String pokemonId = getPokemonIdFromUrl(pokemon.getUrl());
         holder.tvId.setText("#" + pokemonId);
-
-        // 3. Load Gambar
-        // Catatan: Pastikan getImageUrl() di model Anda sudah benar logikanya.
-        // Jika belum, kita bisa pakai URL raw dari GitHub PokeAPI berdasarkan ID.
         String imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/" + pokemonId + ".png";
 
         Picasso.get()
@@ -63,16 +56,12 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.ViewHold
                 .error(R.drawable.ic_launcher_background)
                 .into(holder.ivPokemon);
 
-        // CATATAN PENTING:
-        // Kita HAPUS sementara logika 'getTypes' di sini karena data tersebut
-        // tidak tersedia di respon List API. Tipe akan tampil nanti di DetailActivity.
         holder.tvType.setVisibility(View.GONE);
 
-        // 4. Klik Item ke Detail
         holder.itemView.setOnClickListener(v -> {
             Context context = holder.itemView.getContext();
             Intent intent = new Intent(context, DetailActivity.class);
-            intent.putExtra("EXTRA_NAME", pokemon.getName()); // Kirim nama untuk fetch detail
+            intent.putExtra("EXTRA_NAME", pokemon.getName());
             context.startActivity(intent);
         });
     }
@@ -82,7 +71,6 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.ViewHold
         return (pokemonList != null) ? pokemonList.size() : 0;
     }
 
-    // Helper untuk mengambil ID dari URL API
     private String getPokemonIdFromUrl(String url) {
         if (url == null) return "";
         String[] parts = url.split("/");

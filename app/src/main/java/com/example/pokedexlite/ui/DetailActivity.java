@@ -3,7 +3,10 @@ package com.example.pokedexlite.ui;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -38,6 +41,7 @@ public class DetailActivity extends AppCompatActivity {
     private LinearLayout layoutTypes, layoutEvolution;
     private ImageButton btnBack;
     private MaterialButton btnFavorite, btnAddTeam;
+
     private DatabaseHelper dbHelper;
     private PokeApiService apiService;
     private int currentPokemonId = -1;
@@ -75,9 +79,10 @@ public class DetailActivity extends AppCompatActivity {
         progressHp = findViewById(R.id.progress_hp);
         progressAtk = findViewById(R.id.progress_atk);
         progressDef = findViewById(R.id.progress_def);
+
         progressHp.setProgressTintList(ColorStateList.valueOf(Color.BLUE));
         progressAtk.setProgressTintList(ColorStateList.valueOf(Color.RED));
-        progressDef.setProgressTintList(ColorStateList.valueOf(Color.parseColor("#FFA500")));
+        progressDef.setProgressTintList(ColorStateList.valueOf(Color.parseColor("#FFA500"))); // Orange
 
         tvHpVal = findViewById(R.id.tv_stat_hp_val);
         tvAtkVal = findViewById(R.id.tv_stat_atk_val);
@@ -90,7 +95,7 @@ public class DetailActivity extends AppCompatActivity {
         btnAddTeam = findViewById(R.id.btn_add_team);
 
         btnBack.setImageResource(R.drawable.ic_arrow_back);
-        btnAddTeam.setIconResource(R.drawable.ic_add_2);
+        btnAddTeam.setIconResource(R.drawable.ic_add);
 
         btnBack.setOnClickListener(v -> finish());
         btnFavorite.setOnClickListener(v -> {
@@ -117,7 +122,6 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     private void updateFavoriteButtonState(boolean isFav) {
-        // PERBAIKAN 3: Update icon favorit (Border vs Added)
         if (isFav) {
             btnFavorite.setText("Favorited");
             btnFavorite.setIconResource(R.drawable.ic_favorite_added);
@@ -150,7 +154,8 @@ public class DetailActivity extends AppCompatActivity {
         currentPokemonName = data.getName();
         currentImageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/" + data.getId() + ".png";
 
-        tvName.setText(data.getName());
+        String capitalizedName = data.getName().substring(0, 1).toUpperCase() + data.getName().substring(1);
+        tvName.setText(capitalizedName);
         Picasso.get().load(currentImageUrl).into(ivImage);
 
         tvWeight.setText((data.getWeight() / 10.0) + " KG");
@@ -267,22 +272,24 @@ public class DetailActivity extends AppCompatActivity {
             return;
         }
 
+        int size = 140;
+
         for (int i = 0; i < evoNames.size(); i++) {
-            String name = evoNames.get(i);
+            String rawName = evoNames.get(i);
+            String name = rawName.substring(0, 1).toUpperCase() + rawName.substring(1);
             String id = evoIds.get(i);
 
             LinearLayout itemLayout = new LinearLayout(this);
             itemLayout.setOrientation(LinearLayout.VERTICAL);
             itemLayout.setGravity(Gravity.CENTER);
-            itemLayout.setPadding(16, 0, 16, 0);
+            itemLayout.setPadding(8, 0, 8, 0);
 
             ImageView iv = new ImageView(this);
-            int size = 200;
             LinearLayout.LayoutParams imgParams = new LinearLayout.LayoutParams(size, size);
             iv.setLayoutParams(imgParams);
+            iv.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
             String evoImageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/" + id + ".png";
-
             Picasso.get()
                     .load(evoImageUrl)
                     .placeholder(R.drawable.ic_launcher_foreground)
@@ -291,7 +298,19 @@ public class DetailActivity extends AppCompatActivity {
 
             TextView tv = new TextView(this);
             tv.setText(name);
-            tv.setGravity(Gravity.CENTER);
+            tv.setGravity(Gravity.CENTER_HORIZONTAL);
+            tv.setTextColor(Color.parseColor("#333333"));
+
+            LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            textParams.topMargin = 4;
+            tv.setLayoutParams(textParams);
+
+            tv.setTextSize(11);
+            tv.setMaxLines(3);
+            tv.setEllipsize(TextUtils.TruncateAt.END);
 
             itemLayout.addView(iv);
             itemLayout.addView(tv);
@@ -301,6 +320,14 @@ public class DetailActivity extends AppCompatActivity {
                 ImageView arrow = new ImageView(this);
                 arrow.setImageResource(android.R.drawable.ic_media_play);
                 arrow.setColorFilter(Color.GRAY);
+
+                LinearLayout.LayoutParams arrowParams = new LinearLayout.LayoutParams(
+                        60,
+                        60
+                );
+                arrowParams.gravity = Gravity.CENTER_VERTICAL;
+                arrow.setLayoutParams(arrowParams);
+
                 layoutEvolution.addView(arrow);
             }
         }
