@@ -70,6 +70,12 @@
                 android:text="Base Stats"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp"/>
+
+            <TextView android:id="@+id/tvStatHp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="HP: Loading..."/>
+            <TextView android:id="@+id/tvStatAtk" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Attack: Loading..."/>
+            <TextView android:id="@+id/tvStatDef" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Defense: Loading..."/>
+            <TextView android:id="@+id/tvStatSpd" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Speed: Loading..."/>
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -105,7 +111,18 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp"/>
 
+            <TextView
+                android:id="@+id/tvEvolutionError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No evolution chain provided"
+                android:textColor="#555"
+                android:fontFamily="sans-serif-content-styles"
+                android:visibility="gone"
+                android:paddingBottom="8dp"/>
+
             <HorizontalScrollView
+                android:id="@+id/scrollEvolution"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
@@ -119,10 +136,7 @@
             </HorizontalScrollView>
 
             <View android:layout_width="match_parent" android:layout_height="50dp"/>
-            <TextView android:id="@+id/tvStatHp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="HP: Loading..."/>
-            <TextView android:id="@+id/tvStatAtk" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Attack: Loading..."/>
-            <TextView android:id="@+id/tvStatDef" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Defense: Loading..."/>
-            <TextView android:id="@+id/tvStatSpd" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Speed: Loading..."/>
+
         </LinearLayout>
 
     </LinearLayout>

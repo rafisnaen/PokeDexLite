@@ -16,14 +16,14 @@ public class PokemonSpeciesResponse {
     }
 
     public String getDescription() {
-        if (flavorTextEntries != null) {
+        if (flavorTextEntries != null && !flavorTextEntries.isEmpty()) {
             for (FlavorTextEntry entry : flavorTextEntries) {
                 if ("en".equals(entry.language.name)) {
                     return entry.flavorText.replace("\n", " ").replace("\f", " ");
                 }
             }
         }
-        return "No description available.";
+        return "No description provided for this pokemon";
     }
 
     private static class EvolutionChainUrl {

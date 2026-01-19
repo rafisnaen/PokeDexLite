@@ -3,6 +3,7 @@ package com.example.pokedexlite.ui;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,12 +35,16 @@ public class DetailActivity extends AppCompatActivity {
     private String pokemonName;
     private String imageUrl;
     private String typeString = "";
+    private TextView tvEvolutionError;
+    private HorizontalScrollView scrollEvolution;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        tvEvolutionError = findViewById(R.id.tvEvolutionError);
+        scrollEvolution = findViewById(R.id.scrollEvolution);
 
         dbHelper = new DatabaseHelper(this);
         apiService = RetrofitClient.getService();
@@ -82,6 +87,8 @@ public class DetailActivity extends AppCompatActivity {
                         for (PokemonDetailResponse.AbilitySlot slot : data.getAbilities()) {
                             sbAbility.append(slot.getAbility().getName()).append("\n");
                         }
+                    } else {
+                        binding.tvAbilities.setText("No abilities found.");
                     }
                     binding.tvAbilities.setText(sbAbility.toString().trim());
 
@@ -93,11 +100,15 @@ public class DetailActivity extends AppCompatActivity {
                         else if (name.equals("defense")) binding.tvStatDef.setText("Defense: " + val);
                         else if (name.equals("speed")) binding.tvStatSpd.setText("Speed: " + val);
                     }
+                } else {
+                    // Handle jika request detail sukses tapi body kosong
+                    binding.tvAbilities.setText("Failed to load details.");
                 }
             }
             @Override
             public void onFailure(Call<PokemonDetailResponse> call, Throwable t) {
                 Toast.makeText(DetailActivity.this, "Err Detail: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                binding.tvAbilities.setText("Failed to load details.");
             }
         });
     }
@@ -108,17 +119,23 @@ public class DetailActivity extends AppCompatActivity {
             public void onResponse(Call<PokemonSpeciesResponse> call, Response<PokemonSpeciesResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     PokemonSpeciesResponse species = response.body();
-
                     binding.tvDescription.setText(species.getDescription());
                     String evoUrl = species.getEvolutionChainUrl();
-                    if (evoUrl != null) {
+                    if (evoUrl != null && !evoUrl.isEmpty()) {
                         loadEvolution(evoUrl);
+                    } else {
+                        showEvolutionError();
                     }
+                } else {
+                    binding.tvDescription.setText("No description provided for this pokemon");
+                    showEvolutionError();
                 }
             }
+
             @Override
             public void onFailure(Call<PokemonSpeciesResponse> call, Throwable t) {
-                binding.tvDescription.setText("Failed to load description.");
+                binding.tvDescription.setText("No description provided for this pokemon");
+                showEvolutionError();
             }
         });
     }
@@ -129,13 +146,35 @@ public class DetailActivity extends AppCompatActivity {
             public void onResponse(Call<EvolutionChainResponse> call, Response<EvolutionChainResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     EvolutionChainResponse.ChainLink chain = response.body().getChain();
-                    renderEvolutionChain(chain);
+                    if (chain != null) {
+                        if(tvEvolutionError != null) tvEvolutionError.setVisibility(View.GONE);
+                        if(scrollEvolution != null) scrollEvolution.setVisibility(View.VISIBLE);
+
+                        // Render
+                        binding.layoutEvolution.removeAllViews();
+                        renderEvolutionChain(chain);
+                    } else {
+                        showEvolutionError();
+                    }
+                } else {
+                    showEvolutionError();
                 }
             }
+
             @Override
             public void onFailure(Call<EvolutionChainResponse> call, Throwable t) {
+                showEvolutionError();
             }
         });
+    }
+    private void showEvolutionError() {
+        if (tvEvolutionError != null) {
+            tvEvolutionError.setVisibility(View.VISIBLE);
+            tvEvolutionError.setText("No evolution chain provided");
+        }
+        if (scrollEvolution != null) {
+            scrollEvolution.setVisibility(View.GONE);
+        }
     }
 
     private void renderEvolutionChain(EvolutionChainResponse.ChainLink currentChain) {
@@ -156,6 +195,7 @@ public class DetailActivity extends AppCompatActivity {
         if (currentChain.getEvolvesTo() != null && !currentChain.getEvolvesTo().isEmpty()) {
             ImageView arrow = new ImageView(this);
             arrow.setImageResource(android.R.drawable.ic_media_play);
+            arrow.setPadding(8,0,8,0);
             binding.layoutEvolution.addView(arrow);
             renderEvolutionChain(currentChain.getEvolvesTo().get(0));
         }
