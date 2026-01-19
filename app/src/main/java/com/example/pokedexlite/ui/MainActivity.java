@@ -15,6 +15,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+// Pastikan R di-import dari package aplikasi Anda
 import com.example.pokedexlite.R;
 import com.example.pokedexlite.data.local.DatabaseHelper;
 import com.example.pokedexlite.data.model.PokemonListResponse;
@@ -41,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
 
     private List<PokemonListResponse.PokemonResult> currentBrowseList = new ArrayList<>();
     private List<PokemonListResponse.PokemonResult> masterSearchList = new ArrayList<>();
+
     private int currentGenIndex = 0;
     private final int[] genOffsets = {0, 151, 251, 386, 493, 649, 721, 809, 905};
     private final int[] genLimits = {151, 100, 135, 107, 156, 72, 88, 96, 120};
@@ -61,8 +63,10 @@ public class MainActivity extends AppCompatActivity {
         initViews();
         setupRecyclerView();
         setupSearch();
+
         loadPokemonGen(currentGenIndex);
         loadGlobalSearchData();
+
         hideSystemUI();
     }
 
@@ -231,6 +235,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
     private void hideSystemUI() {
         androidx.core.view.WindowInsetsControllerCompat windowInsetsController =
                 androidx.core.view.WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());

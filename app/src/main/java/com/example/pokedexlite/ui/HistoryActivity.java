@@ -3,9 +3,12 @@ package com.example.pokedexlite.ui;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem; // PERBAIKAN 1: Import MenuItem ditambahkan
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,6 +28,7 @@ import java.util.List;
 public class HistoryActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private DatabaseHelper dbHelper;
+    private HistoryAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,13 +40,34 @@ public class HistoryActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Search History");
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-
+        if (binding.etSearch != null) {
+            binding.etSearch.setVisibility(View.GONE);
+        }
         dbHelper = new DatabaseHelper(this);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.progressBar.setVisibility(View.GONE);
 
         loadHistory();
         hideSystemUI();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_history, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.action_clear_history) {
+            dbHelper.clearHistory();
+            if (adapter != null) {
+                adapter.updateData(new ArrayList<>());
+            }
+            Toast.makeText(this, "History Cleared!", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -67,8 +92,7 @@ public class HistoryActivity extends AppCompatActivity {
             }
             cursor.close();
         }
-
-        HistoryAdapter adapter = new HistoryAdapter(historyList);
+        adapter = new HistoryAdapter(historyList);
         binding.recyclerView.setAdapter(adapter);
     }
 
@@ -80,7 +104,14 @@ public class HistoryActivity extends AppCompatActivity {
 
     class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryVH> {
         List<HistoryItem> list;
-        public HistoryAdapter(List<HistoryItem> list) { this.list = list; }
+
+        public HistoryAdapter(List<HistoryItem> list) {
+            this.list = list;
+        }
+        public void updateData(List<HistoryItem> newList) {
+            this.list = newList;
+            notifyDataSetChanged();
+        }
 
         @NonNull @Override
         public HistoryVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -103,7 +134,6 @@ public class HistoryActivity extends AppCompatActivity {
 
         @Override
         public int getItemCount() { return list.size(); }
-
         class HistoryVH extends RecyclerView.ViewHolder {
             TextView tvName, tvQuery;
             public HistoryVH(View v) {

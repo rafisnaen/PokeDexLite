@@ -74,6 +74,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return count;
     }
+
     public void addToTeam(int pokemonId, String name, String imageUrl, String types) {
         if (getTeamCount() >= 6) return;
         SQLiteDatabase db = this.getWritableDatabase();
@@ -92,10 +93,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put("note", newNote);
         db.update("team", values, "id = ?", new String[]{String.valueOf(id)});
     }
+
     public void removeFromTeam(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete("team", "id = ?", new String[]{String.valueOf(id)});
     }
+
     public Cursor getHistory() {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM history ORDER BY created_at DESC", null);
@@ -110,6 +113,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put("created_at", System.currentTimeMillis());
         db.insert("history", null, values);
     }
+
     public void saveCache(String key, String json) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -117,6 +121,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put("json", json);
         db.replace("api_cache", null, values);
     }
+
     public String getCache(String key) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT json FROM api_cache WHERE cache_key = ?", new String[]{key});
@@ -124,5 +129,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) result = cursor.getString(0);
         cursor.close();
         return result;
+    }
+
+    public void clearHistory() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM history");
+        db.close();
     }
 }

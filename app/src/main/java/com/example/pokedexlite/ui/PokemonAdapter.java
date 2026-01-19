@@ -12,6 +12,7 @@ import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.pokedexlite.R; // Pastikan R diimport
 import com.example.pokedexlite.data.model.PokemonListResponse;
 import com.example.pokedexlite.databinding.ItemPokemonBinding;
 import com.squareup.picasso.Picasso;
@@ -46,6 +47,7 @@ public class PokemonAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         this.loadMoreListener = loadMoreListener;
         this.pokemonList = new ArrayList<>();
     }
+
     public void setPokemonList(List<PokemonListResponse.PokemonResult> list) {
         this.pokemonList = new ArrayList<>(list);
         notifyDataSetChanged();
@@ -96,8 +98,9 @@ public class PokemonAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
             Button btnLoad = new Button(context);
             btnLoad.setText("LOAD MORE");
-            btnLoad.setBackgroundColor(Color.parseColor("#FFCC00"));
-            btnLoad.setTextColor(Color.parseColor("#3B4CCA"));
+            btnLoad.setBackgroundResource(R.drawable.bg_button_rounded);
+            btnLoad.setTextColor(Color.WHITE);
+
             btnLoad.setTextSize(16);
             btnLoad.setPadding(30, 20, 30, 20);
 
@@ -150,7 +153,7 @@ public class PokemonAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             String imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/" + id + ".png";
             Picasso.get()
                     .load(imageUrl)
-                    .placeholder(com.example.pokedexlite.R.drawable.ic_launcher_foreground)
+                    .placeholder(R.drawable.ic_launcher_foreground)
                     .into(binding.ivPokemon);
 
             itemView.setOnClickListener(v -> listener.onItemClick(pokemon));
