@@ -1,5 +1,6 @@
 package com.example.pokedexlite.ui;
 
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -37,13 +38,13 @@ public class DetailActivity extends AppCompatActivity {
     private LinearLayout layoutTypes, layoutEvolution;
     private ImageButton btnBack;
     private MaterialButton btnFavorite, btnAddTeam;
-
     private DatabaseHelper dbHelper;
     private PokeApiService apiService;
     private int currentPokemonId = -1;
     private String currentPokemonName = "";
     private String currentImageUrl = "";
     private String currentTypes = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,6 +62,7 @@ public class DetailActivity extends AppCompatActivity {
         } else if (pokemonId != -1) {
             loadPokemonDetail(String.valueOf(pokemonId));
         }
+        hideSystemUI();
     }
 
     private void initViews() {
@@ -69,9 +71,13 @@ public class DetailActivity extends AppCompatActivity {
         tvHeight = findViewById(R.id.tv_height);
         tvDesc = findViewById(R.id.tv_description);
         ivImage = findViewById(R.id.iv_detail_image);
+
         progressHp = findViewById(R.id.progress_hp);
         progressAtk = findViewById(R.id.progress_atk);
         progressDef = findViewById(R.id.progress_def);
+        progressHp.setProgressTintList(ColorStateList.valueOf(Color.BLUE));
+        progressAtk.setProgressTintList(ColorStateList.valueOf(Color.RED));
+        progressDef.setProgressTintList(ColorStateList.valueOf(Color.parseColor("#FFA500")));
 
         tvHpVal = findViewById(R.id.tv_stat_hp_val);
         tvAtkVal = findViewById(R.id.tv_stat_atk_val);
@@ -82,6 +88,9 @@ public class DetailActivity extends AppCompatActivity {
         btnBack = findViewById(R.id.btn_back);
         btnFavorite = findViewById(R.id.btn_favorite);
         btnAddTeam = findViewById(R.id.btn_add_team);
+
+        btnBack.setImageResource(R.drawable.ic_arrow_back);
+        btnAddTeam.setIconResource(R.drawable.ic_add_2);
 
         btnBack.setOnClickListener(v -> finish());
         btnFavorite.setOnClickListener(v -> {
@@ -108,12 +117,13 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     private void updateFavoriteButtonState(boolean isFav) {
+        // PERBAIKAN 3: Update icon favorit (Border vs Added)
         if (isFav) {
             btnFavorite.setText("Favorited");
-            btnFavorite.setIconResource(R.drawable.ic_launcher_background);
+            btnFavorite.setIconResource(R.drawable.ic_favorite_added);
         } else {
             btnFavorite.setText("Favorite");
-            btnFavorite.setIconResource(R.drawable.ic_launcher_foreground);
+            btnFavorite.setIconResource(R.drawable.ic_favorite_border);
         }
     }
 
@@ -185,6 +195,7 @@ public class DetailActivity extends AppCompatActivity {
         currentTypes = typesBuilder.toString();
         updateFavoriteButtonState(dbHelper.isFavorite(currentPokemonId));
     }
+
     private void loadPokemonSpecies(int id) {
         apiService.getPokemonSpecies(id).enqueue(new Callback<PokemonSpeciesResponse>() {
             @Override
@@ -215,6 +226,7 @@ public class DetailActivity extends AppCompatActivity {
             }
         });
     }
+
     private void loadEvolutionChain(String url) {
         apiService.getEvolutionChain(url).enqueue(new Callback<EvolutionChainResponse>() {
             @Override
@@ -235,10 +247,14 @@ public class DetailActivity extends AppCompatActivity {
     private void renderEvolutionChain(EvolutionChainResponse data) {
         layoutEvolution.removeAllViews();
         List<String> evoNames = new ArrayList<>();
+        List<String> evoIds = new ArrayList<>();
 
         EvolutionChainResponse.ChainLink current = data.getChain();
         while (current != null) {
             evoNames.add(current.getSpecies().getName());
+            String speciesUrl = current.getSpecies().getUrl();
+            evoIds.add(getPokemonIdFromUrl(speciesUrl));
+
             if (current.getEvolvesTo() != null && !current.getEvolvesTo().isEmpty()) {
                 current = current.getEvolvesTo().get(0);
             } else {
@@ -253,6 +269,7 @@ public class DetailActivity extends AppCompatActivity {
 
         for (int i = 0; i < evoNames.size(); i++) {
             String name = evoNames.get(i);
+            String id = evoIds.get(i);
 
             LinearLayout itemLayout = new LinearLayout(this);
             itemLayout.setOrientation(LinearLayout.VERTICAL);
@@ -260,10 +277,17 @@ public class DetailActivity extends AppCompatActivity {
             itemLayout.setPadding(16, 0, 16, 0);
 
             ImageView iv = new ImageView(this);
-            int size = 150;
+            int size = 200;
             LinearLayout.LayoutParams imgParams = new LinearLayout.LayoutParams(size, size);
             iv.setLayoutParams(imgParams);
-            iv.setImageResource(R.drawable.ic_launcher_foreground);
+
+            String evoImageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/" + id + ".png";
+
+            Picasso.get()
+                    .load(evoImageUrl)
+                    .placeholder(R.drawable.ic_launcher_foreground)
+                    .error(R.drawable.ic_launcher_foreground)
+                    .into(iv);
 
             TextView tv = new TextView(this);
             tv.setText(name);
@@ -288,5 +312,24 @@ public class DetailActivity extends AppCompatActivity {
         tv.setTextColor(Color.GRAY);
         layoutEvolution.removeAllViews();
         layoutEvolution.addView(tv);
+    }
+
+    private String getPokemonIdFromUrl(String url) {
+        if (url == null) return "";
+        if (url.endsWith("/")) {
+            url = url.substring(0, url.length() - 1);
+        }
+        String[] parts = url.split("/");
+        return parts[parts.length - 1];
+    }
+    private void hideSystemUI() {
+        androidx.core.view.WindowInsetsControllerCompat windowInsetsController =
+                androidx.core.view.WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        if (windowInsetsController != null) {
+            windowInsetsController.setSystemBarsBehavior(
+                    androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            );
+            windowInsetsController.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars());
+        }
     }
 }
