@@ -39,6 +39,10 @@ public class TeamActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        if (binding.etSearch != null) {
+            binding.etSearch.setVisibility(View.GONE);
+        }
+
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("MY DREAM TEAM");
