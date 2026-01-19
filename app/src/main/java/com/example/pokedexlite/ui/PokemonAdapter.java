@@ -23,6 +23,10 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.ViewHold
     public PokemonAdapter(List<PokemonListResponse.PokemonResult> pokemonList) {
         this.pokemonList = pokemonList;
     }
+    public void setFilteredList(List<PokemonListResponse.PokemonResult> filteredList) {
+        this.pokemonList = filteredList;
+        notifyDataSetChanged();
+    }
 
     @NonNull
     @Override
@@ -35,13 +39,13 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         PokemonListResponse.PokemonResult pokemon = pokemonList.get(position);
+
         holder.tvName.setText(pokemon.getName());
         Picasso.get()
                 .load(pokemon.getImageUrl())
                 .placeholder(R.drawable.ic_launcher_background)
                 .error(R.drawable.ic_launcher_background)
                 .into(holder.imgPokemon);
-
         holder.itemView.setOnClickListener(v -> {
             Context context = holder.itemView.getContext();
             Intent intent = new Intent(context, DetailActivity.class);
@@ -52,7 +56,7 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.ViewHold
 
     @Override
     public int getItemCount() {
-        return pokemonList.size();
+        return (pokemonList != null) ? pokemonList.size() : 0;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
