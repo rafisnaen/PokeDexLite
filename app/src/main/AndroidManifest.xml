@@ -27,6 +27,9 @@
             android:name=".ui.DetailActivity"
             android:exported="false"
             android:parentActivityName=".ui.MainActivity" />
+        <activity
+            android:name=".ui.HistoryActivity"
+            android:parentActivityName=".ui.MainActivity" />
         <activity android:name=".ui.FavoritesActivity" android:parentActivityName=".ui.MainActivity" />
         <activity android:name=".ui.TeamActivity" android:parentActivityName=".ui.MainActivity" />
     </application>

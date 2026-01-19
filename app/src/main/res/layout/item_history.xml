@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="?attr/selectableItemBackground">
+
+    <TextView
+        android:id="@+id/tvHistoryName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Pikachu"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textAllCaps="true"/>
+
+    <TextView
+        android:id="@+id/tvHistoryQuery"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Searched at..."
+        android:textSize="12sp"
+        android:textColor="#666"/>
+</LinearLayout>

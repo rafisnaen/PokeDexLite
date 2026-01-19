@@ -20,8 +20,6 @@ import com.example.pokedexlite.data.remote.PokeApiService;
 import com.example.pokedexlite.data.remote.RetrofitClient;
 import com.example.pokedexlite.databinding.ActivityDetailBinding;
 import com.squareup.picasso.Picasso;
-import java.util.ArrayList;
-import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -45,11 +43,13 @@ public class DetailActivity extends AppCompatActivity {
 
         dbHelper = new DatabaseHelper(this);
         apiService = RetrofitClient.getService();
+
         pokemonId = getIntent().getIntExtra("EXTRA_ID", -1);
         if (pokemonId == -1) {
             finish();
             return;
         }
+
         imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/" + pokemonId + ".png";
         Picasso.get().load(imageUrl).into(binding.imgDetail);
 
@@ -61,7 +61,8 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     private void loadDetail() {
-        apiService.getPokemonDetail(pokemonId).enqueue(new Callback<PokemonDetailResponse>() {
+        // PERBAIKAN DI SINI: Konversi int ke String
+        apiService.getPokemonDetail(String.valueOf(pokemonId)).enqueue(new Callback<PokemonDetailResponse>() {
             @Override
             public void onResponse(Call<PokemonDetailResponse> call, Response<PokemonDetailResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -137,6 +138,7 @@ public class DetailActivity extends AppCompatActivity {
             }
         });
     }
+
     private void renderEvolutionChain(EvolutionChainResponse.ChainLink currentChain) {
         if (currentChain == null) return;
         View view = LayoutInflater.from(this).inflate(R.layout.item_pokemon_small, binding.layoutEvolution, false);
@@ -191,6 +193,7 @@ public class DetailActivity extends AppCompatActivity {
     private void updateFavoriteButtonState() {
         binding.btnToggleFav.setText(dbHelper.isFavorite(pokemonId) ? "Remove Fav" : "Add to Fav");
     }
+
     private void hideSystemUI() {
         WindowInsetsControllerCompat windowInsetsController =
                 WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
