@@ -1,5 +1,6 @@
 package com.example.pokedexlite.ui;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
@@ -24,6 +25,10 @@ public class FavoritesActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         setTitle("My Favorites");
+        if (binding.etSearch != null) {
+            binding.etSearch.setVisibility(View.GONE);
+        }
+
         binding.progressBar.setVisibility(View.GONE);
 
         setSupportActionBar(binding.toolbar);
@@ -31,10 +36,11 @@ public class FavoritesActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("FAVORITE POKEMON");
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-        binding.progressBar.setVisibility(View.GONE);
 
         dbHelper = new DatabaseHelper(this);
-        binding.recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
+        binding.recyclerView.setLayoutManager(layoutManager);
+
         hideSystemUI();
     }
 
@@ -43,11 +49,13 @@ public class FavoritesActivity extends AppCompatActivity {
         super.onResume();
         loadFavorites();
     }
+
     @Override
     public boolean onSupportNavigateUp() {
         finish();
         return true;
     }
+
     private void loadFavorites() {
         Cursor cursor = dbHelper.getAllFavorites();
         List<PokemonListResponse.PokemonResult> list = new ArrayList<>();
@@ -64,9 +72,18 @@ public class FavoritesActivity extends AppCompatActivity {
             cursor.close();
         }
 
-        PokemonAdapter adapter = new PokemonAdapter(list);
+        PokemonAdapter adapter = new PokemonAdapter(this, pokemon -> {
+            Intent intent = new Intent(FavoritesActivity.this, DetailActivity.class);
+            intent.putExtra("EXTRA_NAME", pokemon.getName());
+            startActivity(intent);
+        }, null);
+
+        adapter.setPokemonList(list);
+        adapter.setFooterEnabled(false);
+
         binding.recyclerView.setAdapter(adapter);
     }
+
     private void hideSystemUI() {
         WindowInsetsControllerCompat windowInsetsController =
                 WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());

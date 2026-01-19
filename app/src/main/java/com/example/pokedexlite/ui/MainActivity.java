@@ -1,17 +1,25 @@
 package com.example.pokedexlite.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.pokedexlite.R;
 import com.example.pokedexlite.data.local.DatabaseHelper;
 import com.example.pokedexlite.data.model.PokemonListResponse;
 import com.example.pokedexlite.data.remote.PokeApiService;
 import com.example.pokedexlite.data.remote.RetrofitClient;
-import com.example.pokedexlite.databinding.ActivityMainBinding;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
@@ -23,136 +31,206 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ActivityMainBinding binding;
-    private DatabaseHelper dbHelper;
-    private PokeApiService apiService;
-
-    private List<PokemonListResponse.PokemonResult> masterPokemonList = new ArrayList<>();
-    private List<PokemonListResponse.PokemonResult> displayedList = new ArrayList<>();
+    private RecyclerView recyclerView;
     private PokemonAdapter adapter;
+    private PokeApiService apiService;
+    private DatabaseHelper dbHelper;
+    private EditText etSearch;
+    private View loadingOverlay;
+    private Toolbar toolbar;
+
+    private List<PokemonListResponse.PokemonResult> currentBrowseList = new ArrayList<>();
+    private List<PokemonListResponse.PokemonResult> masterSearchList = new ArrayList<>();
+    private int currentGenIndex = 0;
+    private final int[] genOffsets = {0, 151, 251, 386, 493, 649, 721, 809, 905};
+    private final int[] genLimits = {151, 100, 135, 107, 156, 72, 88, 96, 120};
+    private final String[] genLabels = {
+            "Load Gen 2 (Johto)", "Load Gen 3 (Hoenn)", "Load Gen 4 (Sinnoh)",
+            "Load Gen 5 (Unova)", "Load Gen 6 (Kalos)", "Load Gen 7 (Alola)",
+            "Load Gen 8 (Galar)", "Load Gen 9 (Paldea)"
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-        setSupportActionBar(binding.toolbar);
-
-        dbHelper = new DatabaseHelper(this);
         apiService = RetrofitClient.getClient().create(PokeApiService.class);
-        binding.recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
-        adapter = new PokemonAdapter(displayedList);
-        binding.recyclerView.setAdapter(adapter);
+        dbHelper = new DatabaseHelper(this);
 
+        initViews();
+        setupRecyclerView();
+        setupSearch();
+        loadPokemonGen(currentGenIndex);
+        loadGlobalSearchData();
         hideSystemUI();
-        loadMasterData();
     }
 
-    private void loadMasterData() {
-        binding.progressBar.setVisibility(View.VISIBLE);
-        Call<PokemonListResponse> call = apiService.getPokemonList(2000, 0);
+    private void initViews() {
+        recyclerView = findViewById(R.id.recyclerView);
+        etSearch = findViewById(R.id.et_search);
+        loadingOverlay = findViewById(R.id.progressBar);
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+    }
 
-        call.enqueue(new Callback<PokemonListResponse>() {
+    private void setupRecyclerView() {
+        GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
+        layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                return adapter.getItemViewType(position) == 1 ? 2 : 1;
+            }
+        });
+
+        recyclerView.setLayoutManager(layoutManager);
+
+        adapter = new PokemonAdapter(this, pokemon -> {
+            Intent intent = new Intent(MainActivity.this, DetailActivity.class);
+            intent.putExtra("EXTRA_NAME", pokemon.getName());
+            startActivity(intent);
+        }, this::loadNextGeneration);
+
+        recyclerView.setAdapter(adapter);
+    }
+
+    private void setupSearch() {
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String query = s.toString().toLowerCase().trim();
+
+                if (query.isEmpty()) {
+                    adapter.setPokemonList(currentBrowseList);
+                    boolean isMaxGen = currentGenIndex >= genOffsets.length;
+                    adapter.setFooterEnabled(!isMaxGen);
+                } else {
+                    List<PokemonListResponse.PokemonResult> filteredList = new ArrayList<>();
+                    List<PokemonListResponse.PokemonResult> sourceList =
+                            masterSearchList.isEmpty() ? currentBrowseList : masterSearchList;
+
+                    for (PokemonListResponse.PokemonResult p : sourceList) {
+                        if (p.getName().toLowerCase().contains(query)) {
+                            filteredList.add(p);
+                        }
+                    }
+                    adapter.setPokemonList(filteredList);
+                    adapter.setFooterEnabled(false);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    private void loadGlobalSearchData() {
+        apiService.getPokemonList(2000, 0).enqueue(new Callback<PokemonListResponse>() {
             @Override
             public void onResponse(Call<PokemonListResponse> call, Response<PokemonListResponse> response) {
-                binding.progressBar.setVisibility(View.GONE);
                 if (response.isSuccessful() && response.body() != null) {
-                    masterPokemonList.clear();
-                    masterPokemonList.addAll(response.body().getResults());
+                    masterSearchList = response.body().getResults();
+                }
+            }
+            @Override
+            public void onFailure(Call<PokemonListResponse> call, Throwable t) {}
+        });
+    }
+
+    private void loadPokemonGen(int genIndex) {
+        if (genIndex >= genOffsets.length) return;
+
+        showLoading(true);
+        int limit = genLimits[genIndex];
+        int offset = genOffsets[genIndex];
+
+        if (genIndex < genLabels.length) {
+            adapter.setNextGenLabel(genLabels[genIndex]);
+        } else {
+            adapter.setFooterEnabled(false);
+        }
+
+        apiService.getPokemonList(limit, offset).enqueue(new Callback<PokemonListResponse>() {
+            @Override
+            public void onResponse(Call<PokemonListResponse> call, Response<PokemonListResponse> response) {
+                showLoading(false);
+                if (response.isSuccessful() && response.body() != null) {
+                    List<PokemonListResponse.PokemonResult> newResults = response.body().getResults();
+
+                    if (genIndex == 0) {
+                        currentBrowseList = new ArrayList<>(newResults);
+                        adapter.setPokemonList(currentBrowseList);
+                    } else {
+                        currentBrowseList.addAll(newResults);
+                        adapter.addPokemonList(newResults);
+                        Toast.makeText(MainActivity.this, "Gen " + (genIndex + 1) + " Loaded!", Toast.LENGTH_SHORT).show();
+                    }
+
                     String json = new Gson().toJson(response.body());
-                    dbHelper.saveCache("master_list", json);
-                    showDefaultList();
+                    dbHelper.saveCache("gen_" + genIndex, json);
                 }
             }
 
             @Override
             public void onFailure(Call<PokemonListResponse> call, Throwable t) {
-                binding.progressBar.setVisibility(View.GONE);
-                Toast.makeText(MainActivity.this, "Mode Offline / Gagal Koneksi", Toast.LENGTH_SHORT).show();
-                String cachedJson = dbHelper.getCache("master_list");
+                showLoading(false);
+                String cachedJson = dbHelper.getCache("gen_" + genIndex);
                 if (cachedJson != null) {
-                    PokemonListResponse cachedResponse = new Gson().fromJson(cachedJson, PokemonListResponse.class);
-                    masterPokemonList.clear();
-                    masterPokemonList.addAll(cachedResponse.getResults());
-                    showDefaultList();
+                    PokemonListResponse cachedData = new Gson().fromJson(cachedJson, PokemonListResponse.class);
+                    if (genIndex == 0) {
+                        currentBrowseList = new ArrayList<>(cachedData.getResults());
+                        adapter.setPokemonList(currentBrowseList);
+                    } else {
+                        currentBrowseList.addAll(cachedData.getResults());
+                        adapter.addPokemonList(cachedData.getResults());
+                    }
+                    Toast.makeText(MainActivity.this, "Loaded from Cache (Offline)", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(MainActivity.this, "Data Cache Tidak Ditemukan", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Failed to load data", Toast.LENGTH_SHORT).show();
                 }
             }
         });
     }
 
-    private void showDefaultList() {
-        displayedList.clear();
-        if (masterPokemonList.size() >= 151) {
-            displayedList.addAll(masterPokemonList.subList(0, 151));
+    private void loadNextGeneration() {
+        currentGenIndex++;
+        if (currentGenIndex < genOffsets.length) {
+            loadPokemonGen(currentGenIndex);
         } else {
-            displayedList.addAll(masterPokemonList);
+            adapter.setFooterEnabled(false);
         }
-        adapter.setFilteredList(displayedList);
     }
 
-    private void filterList(String query) {
-        List<PokemonListResponse.PokemonResult> filtered = new ArrayList<>();
-
-        if (query.isEmpty()) {
-            if (masterPokemonList.size() >= 151) {
-                filtered.addAll(masterPokemonList.subList(0, 151));
-            } else {
-                filtered.addAll(masterPokemonList);
-            }
-        } else {
-            String lowerCaseQuery = query.toLowerCase();
-            for (PokemonListResponse.PokemonResult item : masterPokemonList) {
-                if (item.getName().toLowerCase().contains(lowerCaseQuery)) {
-                    filtered.add(item);
-                }
-            }
+    private void showLoading(boolean show) {
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisibility(show ? View.VISIBLE : View.GONE);
         }
-        adapter.setFilteredList(filtered);
     }
 
     @Override
-    public boolean onCreateOptionsMenu(android.view.Menu menu) {
+    public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
-
-        android.view.MenuItem searchItem = menu.findItem(R.id.action_search);
-        androidx.appcompat.widget.SearchView searchView = (androidx.appcompat.widget.SearchView) searchItem.getActionView();
-
-        searchView.setQueryHint("Cari Pokemon...");
-        searchView.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                filterList(newText);
-                return true;
-            }
-        });
-
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(@androidx.annotation.NonNull android.view.MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_favorites) {
-            startActivity(new android.content.Intent(this, FavoritesActivity.class));
+        if (id == R.id.action_team) {
+            startActivity(new Intent(this, TeamActivity.class));
             return true;
-        } else if (id == R.id.action_team) {
-            startActivity(new android.content.Intent(this, TeamActivity.class));
+        } else if (id == R.id.action_favorites) {
+            startActivity(new Intent(this, FavoritesActivity.class));
             return true;
         } else if (id == R.id.action_history) {
-            startActivity(new android.content.Intent(this, HistoryActivity.class));
+            startActivity(new Intent(this, HistoryActivity.class));
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
-
     private void hideSystemUI() {
         androidx.core.view.WindowInsetsControllerCompat windowInsetsController =
                 androidx.core.view.WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
