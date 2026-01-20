@@ -2,7 +2,7 @@
  ### Your light-pocket Pokémon dictionary 📖 !
  <hr>
  
-### PokéDex Lite is a Pokémon dictionary including up to 9 gens (Kanto - Paldea) with Poké API service.
+### PokéDex Lite is a Pokémon dictionary including up to 9 gens / 1000+ Pokémons (Kanto - Paldea) with Poké API service.
 Build APK : [Gdrive ☁️](https://drive.google.com/drive/folders/1unxWOZDWb_OKItEIGbFNP7VL0w0NN4Xt?usp=sharing)
 
  ## Tech Stacks 👩‍💻
