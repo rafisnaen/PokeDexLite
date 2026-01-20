@@ -11,7 +11,7 @@ Build APK : [Gdrive ☁️](https://drive.google.com/drive/folders/1unxWOZDWb_OK
  - **Build Tool** : Gradle (Kotlin DSL)
  - **Database** : SQLite
 
- ## API Lists 🔗
+ ## API & Library Lists 🔗
  * **PokeAPI V2 (REST API)**
  * **PokeAPI Sprites (Image Assets)**
  * **Retrofit 2**
