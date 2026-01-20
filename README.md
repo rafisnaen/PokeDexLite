@@ -5,6 +5,19 @@
 ### PokéDex Lite is a Pokémon dictionary including up to 9 gens (Kanto - Paldea) with Poké API service.
 Build APK : [Gdrive ☁️](https://drive.google.com/drive/folders/1unxWOZDWb_OKItEIGbFNP7VL0w0NN4Xt?usp=sharing)
 
+ ### Tech Stacks 👩‍💻
+ - **Language** : Java
+ - **JDK Version** : 17
+ - **Build Tool** : Gradle (Kotlin DSL)
+ - **Database** : SQLite
+
+ ### API Lists 🔗
+ * **PokeAPI V2 (REST API)**
+ * **PokeAPI Sprites (Image Assets)**
+ * **Retrofit 2**
+ * **Picasso**
+ * **Androidx Splash Screen**
+
 ## 📲 Main Features
 **Pokémon Search 🔎**
   * Load Pokémon Gen-by-Gen (1-9)
@@ -27,16 +40,3 @@ Build APK : [Gdrive ☁️](https://drive.google.com/drive/folders/1unxWOZDWb_OK
     
 **Offline Caching 📴** 
   * Save respons data API to cache local database (SQLite), so that application will save recent opened Pokémon names.
-
- ### Tech Stacks 👩‍💻
- - **Language** : Java
- - **JDK Version** : 17
- - **Build Tool** : Gradle (Kotlin DSL)
- - **Database** : SQLite
-
- ### API Lists 🔗
- * **PokeAPI V2 (REST API)**
- * **PokeAPI Sprites (Image Assets)**
- * **Retrofit 2**
- * **Picasso**
- * **Androidx Splash Screen**
