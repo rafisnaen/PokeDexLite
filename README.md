@@ -39,4 +39,4 @@ Build APK : [Gdrive ☁️](https://drive.google.com/drive/folders/1unxWOZDWb_OK
   * **History**: Your recent search history
     
 **Offline Caching 📴** 
-  * Save respons data API to cache local database (SQLite), so that application will save recent opened Pokémon names.
+  * Save respons data API to cache local database (SQLite), so that application will save recent loaded Pokémon names & pictures (not details).
